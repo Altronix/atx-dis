@@ -1,15 +1,22 @@
-#include "atx-dis.h"
+#include <stdio.h>
+#include <pthread.h>
+#include "log.h"
+#include "config.h"
+#include "beacon.h"
+#include "watch.h"
 
-int main(int argc, const char *const *argv)
+int main(int argc, char*argv[])
 {
-	getHOSTNAME(HOSTNAME, sizeof(HOSTNAME));
+  log_info("Starting atx-dis...\n");
+  UDP udp;
+  DisConfig cfg;
+  pthread_t td;
 
-	SvcConfig cfg = {
-			.service = ATX_SERVICE,
-			.hostname = HOSTNAME,
-			.port = ATX_PORT_SERVICE};
+  cfg_init(&cfg);
+  pthread_create(&td, NULL, threadWatch, (void *)(&cfg));
+  pthread_detach(td);
 
-	runService(cfg);
-
-	return 0;
+  udp_init(&udp, &cfg);
+  start_beacon(&udp, &cfg);
 }
+
